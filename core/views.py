@@ -1,0 +1,61 @@
+from rest_framework import viewsets
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework.filters import SearchFilter, OrderingFilter
+
+from .models import Student, Payment, Teacher, Course, CourseClass, Enrollment, Attendance
+from .filters import (
+    StudentFilter, PaymentFilter, TeacherFilter, 
+    CourseFilter, CourseClassFilter, EnrollmentFilter, AttendanceFilter
+)
+from .serializers import (
+    StudentSerializer, PaymentSerializer, TeacherSerializer,
+    CourseSerializer, CourseClassSerializer, EnrollmentSerializer, AttendanceSerializer
+)
+
+class StudentViewSet(viewsets.ModelViewSet):
+    queryset = Student.objects.all().order_by('name')
+    serializer_class = StudentSerializer
+    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filterset_class = StudentFilter
+    search_fields = ['name', 'address', 'parent_1_name', 'parent_2_name']
+    ordering_fields = ['name', 'enrollment_date']
+
+class PaymentViewSet(viewsets.ModelViewSet):
+    queryset = Payment.objects.all().order_by('-payment_date')
+    serializer_class = PaymentSerializer
+    filter_backends = [DjangoFilterBackend, OrderingFilter]
+    filterset_class = PaymentFilter
+    ordering_fields = ['payment_date', 'amount']
+
+class TeacherViewSet(viewsets.ModelViewSet):
+    queryset = Teacher.objects.all().order_by('name')
+    serializer_class = TeacherSerializer
+    filter_backends = [DjangoFilterBackend, SearchFilter]
+    filterset_class = TeacherFilter
+    search_fields = ['name']
+
+class CourseViewSet(viewsets.ModelViewSet):
+    queryset = Course.objects.all().order_by('name')
+    serializer_class = CourseSerializer
+    filter_backends = [DjangoFilterBackend, SearchFilter]
+    filterset_class = CourseFilter
+    search_fields = ['name']
+
+class CourseClassViewSet(viewsets.ModelViewSet):
+    queryset = CourseClass.objects.all().order_by('day_of_week', 'start_hour')
+    serializer_class = CourseClassSerializer
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = CourseClassFilter
+
+class EnrollmentViewSet(viewsets.ModelViewSet):
+    queryset = Enrollment.objects.all()
+    serializer_class = EnrollmentSerializer
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = EnrollmentFilter
+
+class AttendanceViewSet(viewsets.ModelViewSet):
+    queryset = Attendance.objects.all().order_by('-date')
+    serializer_class = AttendanceSerializer
+    filter_backends = [DjangoFilterBackend, OrderingFilter]
+    filterset_class = AttendanceFilter
+    ordering_fields = ['date']
