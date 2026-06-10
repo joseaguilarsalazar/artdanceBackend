@@ -4,24 +4,29 @@ services:
   db:
     image: postgres:15-alpine
     container_name: artschool_postgres_db
+    restart: unless-stopped
     volumes:
       - postgres_data:/var/lib/postgresql/data/
     environment:
       - POSTGRES_DB=${DB_NAME}
       - POSTGRES_USER=${DB_USER}
       - POSTGRES_PASSWORD=${DB_PASSWORD}
-    # 🌟 ADDED: Periodically tests if Postgres is ready to receive traffic
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
       interval: 5s
       timeout: 5s
       retries: 5
+    networks:
+      - artdance_network
 
   web:
     build: .
     container_name: artschool_django_web
+    restart: unless-stopped
+    # 🌟 UPDATED: Automatically builds and applies blueprints to prevent "relation does not exist" errors
     command: >
-      sh -c "python manage.py migrate &&
+      sh -c "python manage.py makemigrations &&
+             python manage.py migrate &&
              python manage.py runserver 0.0.0.0:8000"
     volumes:
       - .:/app
@@ -35,10 +40,11 @@ services:
       - DB_PASSWORD=${DB_PASSWORD}
       - DB_HOST=${DB_HOST}
       - DB_PORT=${DB_PORT}
-    # 🌟 UPDATED: Forces Django to wait specifically for the healthcheck to pass
     depends_on:
       db:
         condition: service_healthy
+    networks:
+      - artdance_network
 
   caddy:
     image: caddy:2-alpine
@@ -53,8 +59,15 @@ services:
       - caddy_config:/config
     depends_on:
       - web
+    networks:
+      - artdance_network
 
 volumes:
   postgres_data:
   caddy_data:      
   caddy_config:
+
+# 🌟 ADDED: Connects this entire composition stack to the shared external bridge
+networks:
+  artdance_network:
+    external: true
