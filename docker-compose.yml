@@ -10,7 +10,12 @@ services:
       - POSTGRES_DB=${DB_NAME}
       - POSTGRES_USER=${DB_USER}
       - POSTGRES_PASSWORD=${DB_PASSWORD}
-    # Removed host ports mapping to keep the database completely internal and safe
+    # 🌟 ADDED: Periodically tests if Postgres is ready to receive traffic
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   web:
     build: .
@@ -20,7 +25,6 @@ services:
              python manage.py runserver 0.0.0.0:8000"
     volumes:
       - .:/app
-    # REMOVED "8000:8000" ports mapping. Only Caddy needs to be exposed to the public internet.
     expose:
       - "8000" 
     environment:
@@ -31,16 +35,18 @@ services:
       - DB_PASSWORD=${DB_PASSWORD}
       - DB_HOST=${DB_HOST}
       - DB_PORT=${DB_PORT}
+    # 🌟 UPDATED: Forces Django to wait specifically for the healthcheck to pass
     depends_on:
-      - db
+      db:
+        condition: service_healthy
 
   caddy:
     image: caddy:2-alpine
     container_name: artschool_proxy
     restart: unless-stopped
     ports:
-      - "80:80"   # For HTTP validation and redirection
-      - "443:443" # For secure HTTPS traffic
+      - "80:80"   
+      - "443:443" 
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile
       - caddy_data:/data
@@ -50,5 +56,5 @@ services:
 
 volumes:
   postgres_data:
-  caddy_data:      # Keeps your SSL certificates safe when restarting containers
+  caddy_data:      
   caddy_config:
