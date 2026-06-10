@@ -10,20 +10,19 @@ services:
       - POSTGRES_DB=${DB_NAME}
       - POSTGRES_USER=${DB_USER}
       - POSTGRES_PASSWORD=${DB_PASSWORD}
-    ports:
-      - "5432:5432"
+    # Removed host ports mapping to keep the database completely internal and safe
 
   web:
     build: .
     container_name: artschool_django_web
-    # The command waits for migrations to apply, then spins up the dev server
     command: >
       sh -c "python manage.py migrate &&
              python manage.py runserver 0.0.0.0:8000"
     volumes:
       - .:/app
-    ports:
-      - "8000:8000"
+    # REMOVED "8000:8000" ports mapping. Only Caddy needs to be exposed to the public internet.
+    expose:
+      - "8000" 
     environment:
       - DEBUG=${DEBUG}
       - SECRET_KEY=${SECRET_KEY}
@@ -35,5 +34,21 @@ services:
     depends_on:
       - db
 
+  caddy:
+    image: caddy:2-alpine
+    container_name: artschool_proxy
+    restart: unless-stopped
+    ports:
+      - "80:80"   # For HTTP validation and redirection
+      - "443:443" # For secure HTTPS traffic
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - web
+
 volumes:
   postgres_data:
+  caddy_data:      # Keeps your SSL certificates safe when restarting containers
+  caddy_config:
