@@ -2,6 +2,7 @@ from django.db import models
 from django.db.models import Sum
 from django.utils import timezone
 import datetime
+from decimal import Decimal
 
 class DistrictChoices(models.TextChoices):
     IQUITOS = 'Iquitos', 'Iquitos'
@@ -38,18 +39,29 @@ class Student(models.Model):
         return self.name
     
     def calculate_debt(self):
-        # 1. Optimized database aggregation for total paid
-        total_paid_dict = self.payment_set.aggregate(total=Sum('amount'))
-        total_paid = total_paid_dict['total'] or 0
+        # 1. Obtener la fecha de inscripción actual del alumno
+        enrollment = self.enrollment_date
         
-        # 2. Dynamic monthly calculation based on their enrolled courses
-        months_enrolled = max(1, (timezone.now().date() - self.enrollment_date).days // 30)
+        # 🌟 PARCHE DE SEGURIDAD: Si viene como datetime (con hora), extraemos solo la fecha
+        if isinstance(enrollment, datetime.datetime):
+            enrollment = enrollment.date()
+            
+        # 2. Obtener la fecha de hoy limpia (solo año-mes-día)
+        hoy = timezone.now().date()
         
-        # Calculate sum of monthly costs for all courses this student is registered in
-        total_monthly_cost = sum(enrollment.course_class.course.monthly_cost for enrollment in self.enrollments.all())
+        # 3. Calcular los meses transcurridos de forma segura
+        days_enrolled = (hoy - enrollment).days
+        months_enrolled = max(1, days_enrolled // 30)
         
-        total_due = months_enrolled * total_monthly_cost
-        return max(0, total_due - total_paid)
+        # 4. Calcular el total debido acumulado (Ej. $150 por mes)
+        total_due = months_enrolled * 150
+        
+        # 5. Restar lo que el alumno ya pagó en el histórico
+        payments = Payment.objects.filter(student=self)
+        # Usamos la agregación de Django o un fallback seguro en Decimal
+        total_paid = sum(payment.amount for payment in payments)
+        
+        return Decimal(total_due) - Decimal(total_paid)
 
 class Payment(models.Model):
     student = models.ForeignKey(Student, on_delete=models.CASCADE)
