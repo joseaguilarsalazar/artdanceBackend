@@ -35,8 +35,11 @@ DEBUG = env.bool('DEBUG', default=True)
 
 ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=[])
 
-CSRF_TRUSTED_ORIGINS = ['http://localhost:3000', 'https://artdance.mishu-soft.org', 'https://www.artdance.mishu-soft.org']
-
+CORS_ALLOWED_ORIGINS = [
+    'http://localhost:3000',
+    'https://artdance.mishu-soft.org',
+    'https://www.artdance.mishu-soft.org',
+]
 
 # Application definition
 
@@ -47,6 +50,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'corsheaders',
     'core',
 
     'rest_framework',
@@ -54,6 +58,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
