@@ -57,6 +57,7 @@ services:
       - ./Caddyfile:/etc/caddy/Caddyfile
       - caddy_data:/data
       - caddy_config:/config
+      - /var/www/diario_static:/var/www/diario_static
     depends_on:
       - web
     networks:
