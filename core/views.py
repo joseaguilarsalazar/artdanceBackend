@@ -49,7 +49,7 @@ class CourseViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticatedOrReadOnly]
 
 class CourseClassViewSet(viewsets.ModelViewSet):
-    queryset = CourseClass.objects.all().order_by('day_of_week', 'start_hour')
+    queryset = CourseClass.objects.all()
     serializer_class = CourseClassSerializer
     filter_backends = [DjangoFilterBackend]
     filterset_class = CourseClassFilter

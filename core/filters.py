@@ -36,7 +36,7 @@ class CourseFilter(django_filters.FilterSet):
 class CourseClassFilter(django_filters.FilterSet):
     class Meta:
         model = CourseClass
-        fields = ['course', 'teacher', 'day_of_week']
+        fields = ['course', 'teacher']
 
 class EnrollmentFilter(django_filters.FilterSet):
     class Meta:

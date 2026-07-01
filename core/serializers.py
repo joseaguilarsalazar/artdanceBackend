@@ -28,7 +28,6 @@ class CourseClassSerializer(serializers.ModelSerializer):
     # String representations for readable nested data
     course_name = serializers.ReadOnlyField(source='course.name')
     teacher_name = serializers.ReadOnlyField(source='teacher.name')
-    day_display = serializers.ReadOnlyField(source='get_day_of_week_display')
 
     class Meta:
         model = CourseClass

@@ -91,7 +91,6 @@ class CourseClass(models.Model):
     """Renamed from CourseTeacher to represent a specific scheduled offering"""
     course = models.ForeignKey(Course, on_delete=models.CASCADE)
     teacher = models.ForeignKey(Teacher, on_delete=models.CASCADE)
-    day_of_week = models.CharField(max_length=3, choices=DayChoices.choices, default=DayChoices.MONDAY)
     start_hour = models.TimeField()
     end_hour = models.TimeField()
     
@@ -99,7 +98,9 @@ class CourseClass(models.Model):
     students = models.ManyToManyField(Student, through='Enrollment', related_name='classes')
 
     def __str__(self):
-        return f"{self.course.name} ({self.get_day_of_week_display()}) w/ {self.teacher.name}"
+        # Un pequeño helper para mostrar los días en el panel de administración
+        dias_str = ", ".join(self.days_of_week)
+        return f"{self.course.name} ({dias_str}) w/ {self.teacher.name}"
 
 class Enrollment(models.Model):
     """Intermediary table replacing CourseTeacherStudent"""
