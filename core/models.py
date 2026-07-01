@@ -22,7 +22,7 @@ class DayChoices(models.TextChoices):
 class Student(models.Model):
     name = models.CharField(max_length=100)
     # Changed from auto_now_add so you can backdate enrollments
-    enrollment_date = models.DateField(default=timezone.now)
+    enrollment_date = models.DateField(default=timezone.localdate)
     address = models.CharField(max_length=255, blank=True, null=True)
     birth_date = models.DateField(blank=True, null=True)
     district = models.CharField(max_length=50, choices=DistrictChoices.choices, default=DistrictChoices.IQUITOS)
