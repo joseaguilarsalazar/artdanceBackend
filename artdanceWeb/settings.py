@@ -35,6 +35,8 @@ DEBUG = env.bool('DEBUG', default=True)
 
 ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=[])
 
+CSRF_TRUSTED_ORIGINS = ['http://localhost:3000', 'https://artdance.mishu-soft.org', 'https://www.artdance.mishu-soft.org']
+
 
 # Application definition
 

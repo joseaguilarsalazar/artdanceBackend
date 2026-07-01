@@ -2,7 +2,8 @@ from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from .views import (
     StudentViewSet, PaymentViewSet, TeacherViewSet,
-    CourseViewSet, CourseClassViewSet, EnrollmentViewSet, AttendanceViewSet
+    CourseViewSet, CourseClassViewSet, EnrollmentViewSet, AttendanceViewSet,
+    AuthCheckView
 )
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
@@ -26,5 +27,6 @@ urlpatterns = [
     
     # The token cycle view: accepts a valid refresh token, returns a fresh access token
     path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    path('auth/check/', AuthCheckView.as_view(), name='auth_check'),
     path('', include(router.urls)),
 ]
