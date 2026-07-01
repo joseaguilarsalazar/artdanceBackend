@@ -22,11 +22,11 @@ services:
   web:
     build: .
     container_name: artschool_django_web
-    restart: unless-stopped
-    # 🌟 UPDATED: Automatically builds and applies blueprints to prevent "relation does not exist" errors
+    # 🌟 UPDATED: Chained the 'seed_admin' command right after database migrations
     command: >
       sh -c "python manage.py makemigrations &&
              python manage.py migrate &&
+             python manage.py seed_admin &&
              python manage.py runserver 0.0.0.0:8000"
     volumes:
       - .:/app
@@ -40,6 +40,10 @@ services:
       - DB_PASSWORD=${DB_PASSWORD}
       - DB_HOST=${DB_HOST}
       - DB_PORT=${DB_PORT}
+      # 🌟 ADDED: Forward your seed variables down to the Python application space
+      - ADMIN_USERNAME=${ADMIN_USERNAME}
+      - ADMIN_EMAIL=${ADMIN_EMAIL}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD}
     depends_on:
       db:
         condition: service_healthy
