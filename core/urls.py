@@ -3,7 +3,7 @@ from rest_framework.routers import DefaultRouter
 from .views import (
     StudentViewSet, PaymentViewSet, TeacherViewSet,
     CourseViewSet, CourseClassViewSet, EnrollmentViewSet, AttendanceViewSet,
-    AuthCheckView
+    AuthCheckView, SchoolDashboardStatisticsView
 )
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
@@ -28,5 +28,6 @@ urlpatterns = [
     # The token cycle view: accepts a valid refresh token, returns a fresh access token
     path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('auth/check/', AuthCheckView.as_view(), name='auth_check'),
+    path('api/statistics/dashboard/', SchoolDashboardStatisticsView.as_view(), name='dashboard_stats'),
     path('', include(router.urls)),
 ]
