@@ -1,4 +1,4 @@
-from rest_framework import viewsets
+from rest_framework import viewsets, status
 from rest_framework.views import APIView
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import SearchFilter, OrderingFilter
@@ -9,6 +9,7 @@ import os
 import math
 import time
 import multiprocessing
+from rest_framework.decorators import action
 
 from .models import Student, Payment, Teacher, Course, CourseClass, Enrollment, Attendance
 from .filters import (
@@ -75,6 +76,33 @@ class AttendanceViewSet(viewsets.ModelViewSet):
     filterset_class = AttendanceFilter
     ordering_fields = ['date']
     permission_classes = [IsAuthenticatedOrReadOnly]
+
+    @action(detail=False, methods=['post'], url_path='bulk-save')
+    def save_attendance_batch(self, request):
+        date = request.data.get('date')
+        course_class_id = request.data.get('course_class_id')
+        records = request.data.get('records', []) # Recibe: [{"student_id": 1, "present": true}]
+
+        if not date or not course_class_id:
+            return Response({"detail": "Faltan parámetros críticos."}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Eliminar registros previos de ese mismo día y clase para evitar duplicados si corrigen asistencia
+        Attendance.objects.filter(date=date, enrollment__course_class_id=course_class_id).delete()
+
+        # Creación eficiente en lote
+        attendance_instances = []
+        for item in records:
+            # Buscamos la matrícula del alumno en esta clase específica
+            enrollment = Enrollment.objects.filter(student_id=item['student_id'], course_class_id=course_class_id).first()
+            if enrollment:
+                attendance_instances.append(Attendance(
+                    enrollment=enrollment,
+                    date=date,
+                    present=item['present']
+                ))
+        
+        Attendance.objects.bulk_create(attendance_instances)
+        return Response({"detail": "Asistencia registrada con éxito."}, status=status.HTTP_201_CREATED)
 
 
 class AuthCheckView(APIView):
